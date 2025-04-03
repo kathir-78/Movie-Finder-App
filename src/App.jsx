@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import  {Search}  from './components/search';
 import  {MovieCard}  from './components/movieCard';
+import { useDebounce} from 'react-use'
 
 const App = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [errorFetch, setErrorFetch] = useState('');
   const [moveList, setMovieList] = useState([]);
+  const [debouncedValue, setDebouncedValue] = useState('');
 
-
+  useDebounce(()=> setDebouncedValue(searchTerm), 700, [searchTerm]);
 
   const options = {
     method: 'GET',
@@ -54,8 +56,8 @@ const App = () => {
   }
   
   useEffect( ()=> {
-    fetchMovie(searchTerm);
-  }, [searchTerm])
+    fetchMovie(debouncedValue);
+  }, [debouncedValue])
 
   return (
     <main>
