@@ -3,6 +3,7 @@ import './App.css'
 import  {Search}  from './components/search';
 import  {MovieCard}  from './components/movieCard';
 import { useDebounce} from 'react-use'
+import { createTrendingMovie, getTrendingMovies } from './lib/appwrite';
 
 const App = () => {
 
@@ -10,6 +11,7 @@ const App = () => {
   const [errorFetch, setErrorFetch] = useState('');
   const [moveList, setMovieList] = useState([]);
   const [debouncedValue, setDebouncedValue] = useState('');
+  const [trendingMovieList, setTrendingMovieList] = useState('');
 
   useDebounce(()=> setDebouncedValue(searchTerm), 700, [searchTerm]);
 
@@ -21,6 +23,20 @@ const App = () => {
     }
   };
 
+  const loadTrendingMovies = async()=> {
+
+    try {
+      const trendingMovies = await getTrendingMovies();
+      if(trendingMovies) {
+        setTrendingMovieList(trendingMovies);
+        // console.log(trendingMovies);
+      }
+      
+    } catch (error) {
+      console.log(error); 
+    }
+  }
+
   const fetchMovie = async(query = '') => {
     try {
 
@@ -29,7 +45,7 @@ const App = () => {
 
       const fetchedMovie = await fetch(API_URL, options);
 
-      if (!fetchedMovie.ok) throw new Error('No movies found');
+      if(!fetchedMovie.ok) throw new Error('No movies found');
 
       const movieData = await fetchedMovie.json();
       console.log(movieData);
@@ -49,6 +65,10 @@ const App = () => {
         setMovieList([...movieData.results]);
       }
 
+      if(query && movieData.results.length > 0){
+        await createTrendingMovie(query, movieData.results[0]);
+      }
+
     } catch (error) {
       setErrorFetch(error.message);
       console.log(error);
@@ -58,6 +78,10 @@ const App = () => {
   useEffect( ()=> {
     fetchMovie(debouncedValue);
   }, [debouncedValue])
+
+  useEffect( ()=> {
+    loadTrendingMovies();
+  }, [])
 
   return (
     <main>
@@ -70,7 +94,23 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
         </header>
 
+        {trendingMovieList.length > 0 && (
+
+          <section className='trending'>
+            <h2>Trending Movies</h2>
+            <ul>
+              {trendingMovieList.map((movie, index)=> (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.searchTerm} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className="all-movies mt-10">
+          <h2>All Movies</h2>
           {errorFetch ? (
             <p className="text-red-500">{errorFetch}</p>
           ) : (
