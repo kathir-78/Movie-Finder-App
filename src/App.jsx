@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import  {Search}  from './components/search';
-import  {MovieCard}  from './components/movieCard';
+import  {MovieCard}  from './components/MovieCard';
 import { useDebounce} from 'react-use'
 import { createTrendingMovie, getTrendingMovies } from './lib/appwrite';
 
